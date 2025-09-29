@@ -1,6 +1,12 @@
 # File: docker-compose.yml
 # Author: Marc Bria UAB (marc.bria@uab.es)
 
+networks:
+  internal:
+    external: false
+  reverse-proxy:
+    external: true
+
 services:
   db:
     image: ${DB_VERSION:-mariadb:11.8}
@@ -18,7 +24,7 @@ services:
 #      - ./volumes/config/db.charset.conf:/etc/mysql/conf.d/charset.cnf
 #      - ./volumes/db-import:/docker-entrypoint-initdb.d
     networks:
-      - inside
+      - internal
     restart: unless-stopped
 
   app:
@@ -51,11 +57,26 @@ services:
       - ./volumes/config/php.custom.ini:/usr/local/etc/php/conf.d/custom.ini
 
     networks:
-      - inside
+      - internal
     depends_on:
       - db
     restart: unless-stopped
 
-networks:
-  inside:
-    external: false
+  web:
+    build: .docker/web
+    restart: unless-stopped
+    volumes:
+      - ./volumes/nextcloud:/var/www/html:ro
+      - ./volumes/nginx/includes:/etc/nginx/conf.d/includes:rw
+    environment:
+      #- VIRTUAL_HOST
+      #- LETSENCRYPT_HOST
+      #- LETSENCRYPT_EMAIL
+      - TZ
+    depends_on:
+      - app
+    networks:
+      - internal
+    #  - reverse-proxy
+    ports:
+      - 80:80
