@@ -8,7 +8,7 @@ networks:
     external: true
 
 services:
-  db:
+  mariadb:
     image: ${DB_VERSION:-mariadb:11.8}
     env_file:
       - .env
@@ -59,24 +59,7 @@ services:
     networks:
       - internal
     depends_on:
-      - db
+      - mariadb
     restart: unless-stopped
-
-  web:
-    build: .docker/web
-    restart: unless-stopped
-    volumes:
-      - ./volumes/nextcloud:/var/www/html:ro
-      - ./volumes/nginx/includes:/etc/nginx/conf.d/includes:rw
-    environment:
-      #- VIRTUAL_HOST
-      #- LETSENCRYPT_HOST
-      #- LETSENCRYPT_EMAIL
-      - TZ
-    depends_on:
-      - app
-    networks:
-      - internal
-    #  - reverse-proxy
     ports:
       - 80:80
