@@ -1,7 +1,3 @@
-# Files
 .swp
-.env
-
-# Configuration and application state
-config.inc.php
-.state/
+.sandbox
+older
