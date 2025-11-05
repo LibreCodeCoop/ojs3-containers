@@ -2,25 +2,39 @@
 # Author: Marc Bria UAB (marc.bria@uab.es)
 
 services:
-  db:
-    image: ${DB_VERSION:-mariadb:11.8}
-    env_file:
-      - .env
-    container_name: "pkp_db_${COMPOSE_PROJECT_NAME:-demo}"
-    environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-changeMePlease}"
-      MYSQL_DATABASE: "${MYSQL_DATABASE:-pkp}"
-      MYSQL_USER: "${MYSQL_USER:-pkp}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-changeMePlease}"
+#  db:
+#    image: ${DB_VERSION:-mariadb:11.8}
+#    env_file:
+#      - .env
+#    container_name: "pkp_db_${COMPOSE_PROJECT_NAME:-demo}"
+#    environment:
+#      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-changeMePlease}"
+#      MYSQL_DATABASE: "${MYSQL_DATABASE:-pkp}"
+#      MYSQL_USER: "${MYSQL_USER:-pkp}"
+#      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-changeMePlease}"
 #    volumes:
 #      - ./volumes/db:/var/lib/mysql
 #      - ./volumes/logs/db:/var/log/mysql
 #      - ./volumes/config/db.charset.conf:/etc/mysql/conf.d/charset.cnf
 #      - ./volumes/db-import:/docker-entrypoint-initdb.d
+#    networks:
+#      - inside
+#    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - ./volumes/postgres/data:/var/lib/postgresql/data
+      - ./.docker/postgres/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+      # - ./volumes/postgresql.conf:/etc/postgresql/postgresql.conf
     networks:
       - inside
-    restart: unless-stopped
-
+    environment:
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - TZ
   app:
     image: ${IMAGE_SOURCE:-local}/${PKP_TOOL:-omp}:${PKP_VERSION:-3_3_0-20}
     build: 
